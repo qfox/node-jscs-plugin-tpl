@@ -1,20 +1,20 @@
 {
-  "author": "Alexej Yaroshevich <zxqfox@gmail.com>",
-  "description": "JSCS plugin tpl",
-  "name": "jscs-plugin-tpl",
-  "version": "0.1.0",
+  "name": "{package}",
+  "author": "{authorName} <{authorEmail}>",
+  "description": "JSCS {pluginName} plugin",
+  "version": "0.0.1",
   "main": "lib/index",
-  "homepage": "https://github.com/zxqfox/node-jscs-plugin-tpl",
+  "homepage": "https://{githubUrl}",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zxqfox/node-jscs-plugin-tpl"
+    "url": "https://{githubUrl}"
   },
   "bugs": {
-    "url": "https://github.com/zxqfox/node-jscs-plugin-tpl/issues"
+    "url": "https://{githubUrl}/issues"
   },
   "contributors": [
-    "Alexej Yaroshevich <zxqfox@gmail.com>"
+    "{authorName} <{authorEmail}>"
   ],
   "engines": {
     "node": ">= 0.8.0"
@@ -26,6 +26,9 @@
     "browserify": "~3.30.2",
     "mocha": "~1.17.1"
   },
+  "peerDependencies": {
+    "jscs": "1.3.x"
+  },
   "scripts": {
     "lint": "jshint . && jscs lib test",
     "test": "npm run lint && mocha -u bdd -R spec"
@@ -34,7 +37,10 @@
     "lib",
     "LICENSE"
   ],
-  "directories": {
-    "test": "test"
-  }
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://{githubUrl}/raw/master/LICENSE"
+    }
+  ]
 }

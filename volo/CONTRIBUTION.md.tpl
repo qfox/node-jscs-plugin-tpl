@@ -4,7 +4,7 @@ Contribution Guide
 This document describes some points about contribution process for jscs package.
 
 The maintainers of the project are:
- * Alexej Yaroshevich (@zxqfox).
+ * {authorName} (@{githubLogin}).
 
 The project is being developed within community. Maintainer merges pull-requests, fixes critical bugs.
 
@@ -18,7 +18,7 @@ Bugs
 ----
 
 If you found an error, typo or any other flaw in the project,
-please report about it using [GitHub Issues](https://github.com/zxqfox/node-jscs-plugin-tpl/issues).
+please report about it using [GitHub Issues](https://github.com/{githubPath}/issues).
 The more details you provide, the easier it could be reproduced and the faster it could be fixed.
 Unfortunately, sometimes the bug can only be reproduced in your project or in your environment,
 so maintainers cannot reproduce it. In this case we believe you can fix the bug and send us the fix.

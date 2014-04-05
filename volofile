@@ -1,0 +1,230 @@
+var FS = require('fs'),
+    PATH = require('path'),
+    EXEC = require('child_process').exec,
+
+    PREFIX_RE = /^(node-)?(jscs-)?/g,
+    PREFIX = 'jscs-';
+
+module.exports = {
+
+    onCreate: function (promise, api, flags, pluginName) {
+
+        if (!pluginName) {
+            return promise.reject("Please provide a name for plugin");
+        }
+
+        // here we are
+        prompty ({
+                githubLogin : 'Github login',
+                pluginName  : ['Plugin name', pluginName.replace(PREFIX_RE, '')],
+                package     : ['Package name', function (d) { return PREFIX + d.pluginName; }],
+                githubPath  : ['Github path', function (d) { return d.githubLogin + '/' + d.package; }],
+                authorName  : ['Author name'],
+                authorEmail : ['Author email'],
+            },
+            function (o) {
+                o.plugin = o.pluginName;
+                o.githubUrl = 'github.com/' + o.githubPath;
+
+                var date = humanDate();
+                o.year = date.year;
+                o.date = date.dmY;
+
+                // Update the files that reference this project by name
+                [
+                    'package.json',
+                    '.jshintignore',
+                    'CONTRIBUTION.md',
+                    'LICENSE',
+                    'README.md'
+                ]
+                .forEach(function (file) {
+                    var res = api.template(api.read(PATH.join('volo', file + '.tpl')), o);
+                    api.write(file, res);
+                });
+
+                // Remove volo directory
+                api.rm('volo');
+
+                // Remove this volofile
+                api.rm('volofile');
+
+                promise.resolve([
+                    '',
+                    'Plugin directory is ready!',
+                    '',
+                    'Do not forget to',
+                    ' - run `npm init` to initialize npm package',
+                    ' - run `npm test` to verify setup',
+                    ' - run `git init` to create git repository',
+                    ' - review README.md and CONTRIBUTING.md files',
+                    ' - commit your project'
+                    ].join('\n'));
+            });
+
+        // helper
+        function prompty (o, cb) {
+            var collector = {},
+                keys = Object.keys(o);
+
+            fetchGitConfigData (function (d) {
+                d.name && (o.authorName[1] = d.name);
+                d.email && (o.authorEmail[1] = d.email);
+                next();
+            });
+
+            function collect (k, v) {
+                if (!v || v.length === 0) {
+                    if (!o[k][1]) {
+                        return promise.reject('Please provide a valid name for ' + o[k][0]);
+                    }
+                    v = o[k][1];
+                }
+                collector[k] = v;
+            }
+            function next () {
+                if (keys.length === 0) {
+                    return cb(collector);
+                }
+
+                var k = keys.shift();
+                var param = o[k] = (Array.isArray(o[k])? o[k] : [o[k]]);
+                var def = param[1];
+                if (def) {
+                    def = param[1] = ((typeof def == 'function')? def(collector) : def);
+                }
+
+                def = def? ' (' + def + ')' : '';
+                api.prompt(param[0] + def + ':')
+                    .then(function (v) {
+                        collect(k, v);
+                        process.nextTick(next);
+                    });
+            }
+        }
+
+        function fetchGitConfigData (cb) {
+            var o = {
+                    name: 'git config --get user.name',
+                    email: 'git config --get user.email'
+                },
+                keys = Object.keys(o),
+                calls = keys.length,
+                end = function () { (calls -= 1) || cb(o); };
+
+            keys.forEach(function (k) {
+                EXEC(o[k], function (err, stdout) {
+                    end(o[k] = (!err && stdout.replace(/^\s+|\s+$/g, '')) || null);
+                });
+            });
+        }
+
+        function humanDate () {
+            var date = new Date(), day, month, year;
+            return {
+                day: day = date.getDate(),
+                month: month = ((date.getMonth() < 9)? '0' : '') + (1 + date.getMonth()),
+                year: year = date.getFullYear(),
+                dmY: day + '.' + month + '.' + year
+            };
+        }
+    }
+
+};
+
+/*
+function create (defaultName) {
+
+        v.prompt('Plugin name (' + defaultName + '):')
+            .then(function(name) {
+                if (!name || name.length === 0) {
+                    name = defaultName;
+                }
+                return [name, v.prompt('Github login:')];
+            })
+            .spread(function (name, login) {
+                return [name, login, v.prompt('Author name:')];
+            })
+            .spread(function (name, login, name) {
+                return [
+                    name,
+                    login,
+                    name,
+                    v.prompt('Author email:')
+                ];
+            })
+            .spread(function(name, login, name, email) {
+                return [
+                    name,
+                    login,
+                    name,
+                    email,
+                    v.prompt('Github path (in organization/repo format):')
+                ];
+            })
+            .spread(function(name, login, name, email, ghPath) {
+                var ghUrl = 'github.com/' + ghPath;
+                var packageName = BEM_PREFIX + name,
+                    packageUpper = packageName.toUpperCase();
+
+                // Update the files that reference this project by name
+                [
+                    'package.json',
+                    'index.js',
+                    'GNUmakefile',
+                    'ChangeLog.md',
+                    'README.md.in',
+                    'LICENSE',
+                    'bin/app.in',
+                    'lib/coa.js',
+                    'lib/command.js'
+                ].forEach(function(file) {
+                    var res = v.template(v.read(file), {
+                        app: packageName,
+                        command: command,
+                        APP: packageUpper,
+                        APP_ENV: packageUpper.replace(/-/g, '_'),
+                        authorName: name,
+                        authorEmail: email,
+                        githubUrl: ghUrl,
+                        githubPath: ghPath,
+                        githubLogin: login,
+                        year: year,
+                        date: dateStr
+                    });
+                    if (file === 'package.json') {
+                        res = res.replace('"app"', '"' + packageName + '"');
+                    }
+                    v.write(file, res);
+                });
+
+                // Rename bin/app.in to bin/{app} and make it executable
+                var from = 'bin/app.in',
+                    to = 'bin/' + packageName;
+                v.mv(from, to);
+                FS.chmodSync(to, '0755');
+
+                // Rename README.md.in to README.md
+                v.mv('README.md.in', 'README.md');
+
+                // Rename command file
+                v.mv('lib/command.js', 'lib/' + command + '.js');
+
+                // Remove this volofile
+                v.rm('volofile');
+
+                console.log([
+                    'Project directory is ready!',
+                    '',
+                    'Do not forget to',
+                    '- run `npm init` to initialize npm package',
+                    '- run `git init` to create git repository',
+                    '- review CONTRIBUTING.md',
+                    '- commit your project'
+                    ].join('\n'));
+
+                d.resolve();
+
+            });
+}
+*/

@@ -1,6 +1,13 @@
-# node-jscs [![Build Status](https://travis-ci.org/zxqfox/node-jscs-plugin-stub.svg?branch=master)](https://travis-ci.org/zxqfox/node-jscs-plugin-stub)
+# node-jscs plugin volo tpl [![Build Status](https://travis-ci.org/zxqfox/node-jscs-plugin-tpl.svg?branch=master)](https://travis-ci.org/zxqfox/node-jscs-plugin-tpl)
 
-JSCS plugin stub
+JSCS plugin volo template
+
+## To create empty stub use volo
+
+```
+npm install volo
+volo create {place here your plugin name} zxqfox/node-jscs-plugin-tpl
+```
 
 ## Friendly packages
 
